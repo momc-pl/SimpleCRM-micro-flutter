@@ -1,0 +1,114 @@
+{
+  "timestamp": "2025-07-10T12:20:45.739Z",
+  "version": "1.0",
+  "entries": [
+    {
+      "id": "entry_mcxcuqdu_1t1ijtz1c",
+      "key": "swarm-research-distributed-1752149857201/flutter/analysis/current_frontend",
+      "value": "\"# Current Frontend Architecture Analysis\\n\\n## Technology Stack\\n- **Rendering**: Server-side rendering with Thymeleaf templates\\n- **CSS Framework**: Bootstrap 5.1.3 (CDN)\\n- **Authentication**: OAuth2 with Google Sign-In\\n- **Architecture**: Traditional MVC pattern\\n- **Controllers**: 4 main controllers (Dashboard, Customer, Login, CustomError)\\n- **Templates**: 4 HTML templates (login, dashboard, customer-detail, error)\\n\\n## Current Frontend Approach\\n1. **Server-Side Rendering (SSR)**:\\n   - Thymeleaf templates with server-side data binding\\n   - HTML pages generated on server and sent to browser\\n   - Traditional form submissions with redirects\\n   - No client-side JavaScript framework\\n\\n2. **Authentication Flow**:\\n   - OAuth2 Google authentication\\n   - Session-based authentication\\n   - User info stored in Spring Security context\\n   - No JWT tokens or stateless authentication\\n\\n3. **User Interface**:\\n   - Bootstrap responsive design\\n   - Basic responsive layout (mobile viewport support)\\n   - Server-side form validation\\n   - Flash messages for user feedback\\n\\n4. **Data Flow**:\\n   - Direct database queries in controllers\\n   - JPA repositories for data access\\n   - Model attributes passed to templates\\n   - No REST API endpoints for frontend consumption\\n\\n## Limitations for Cross-Platform Development\\n1. **Mobile Limitations**:\\n   - No native mobile app support\\n   - Limited mobile user experience\\n   - Dependency on web browser for mobile access\\n\\n2. **API Limitations**:\\n   - No REST API endpoints for mobile/desktop apps\\n   - Tightly coupled frontend and backend\\n   - No standardized API responses\\n\\n3. **Authentication Limitations**:\\n   - Session-based authentication (not suitable for mobile)\\n   - No token-based authentication\\n   - OAuth2 flow designed for web browsers only\\n\\n4. **State Management**:\\n   - Server-side state management only\\n   - No client-side state persistence\\n   - Page reloads for all interactions\\n\\n## Areas for Flutter Integration\\n1. **API Development**: Need to create REST API endpoints\\n2. **Authentication**: Implement JWT token-based authentication\\n3. **State Management**: Design client-side state management\\n4. **Data Serialization**: Create DTOs for API responses\\n5. **Real-time Updates**: Consider WebSocket or Server-Sent Events\"",
+      "type": "string",
+      "namespace": "default",
+      "tags": [],
+      "metadata": {},
+      "owner": "system",
+      "accessLevel": "shared",
+      "createdAt": "2025-07-10T12:19:31.218Z",
+      "updatedAt": "2025-07-10T12:19:31.218Z",
+      "lastAccessedAt": "2025-07-10T12:19:31.218Z",
+      "version": 1,
+      "size": 2420,
+      "compressed": true,
+      "checksum": "90dca55e8fc5b8c8361c8ad9c976f454068c5a216f5db9dfcd60e5ab6887b0de",
+      "references": [],
+      "dependencies": []
+    },
+    {
+      "id": "entry_mcxcwbvs_9gwxnan66",
+      "key": "swarm-research-distributed-1752149857201/flutter/analysis/architecture_patterns",
+      "value": "\"# Flutter Architecture Patterns Research 2025\\n\\n## State Management Evolution\\n\\n### 1. Riverpod (Recommended for New Projects)\\n**Why Riverpod Dominates in 2025:**\\n- Built by Provider's creator, addresses Provider's limitations\\n- Compile-time safety and declarative approach\\n- Reactive caching and data-binding features\\n- Highly flexible and modern solution\\n- Four-layer architecture: data, domain, application, presentation\\n- Excellent for medium to large applications\\n\\n**Architecture Integration:**\\n- Seamlessly integrates with Clean Architecture\\n- Provides fine-grained control over state\\n- Reduces boilerplate compared to alternatives\\n- Strong type safety and testing capabilities\\n\\n### 2. BLoC (Best for Complex Applications)\\n**2025 Position:**\\n- Remains premier choice for complex state management\\n- Robust structure with reactive programming using Streams\\n- Ideal for large-scale projects with intricate requirements\\n- Excellent separation of business logic from UI\\n- Strong testing capabilities and predictable state changes\\n\\n**Use Cases:**\\n- Large enterprise applications\\n- Complex business logic requirements\\n- Applications requiring extensive state management\\n- Projects with multiple developers needing clear patterns\\n\\n### 3. Provider (Solid for Simple to Medium Apps)\\n**Continued Relevance:**\\n- Officially backed by Flutter team\\n- Excellent for small to medium-sized applications\\n- Great introduction to state management concepts\\n- Simple and versatile approach\\n- Lower learning curve\\n\\n**Recommendations:**\\n- Choose for rapid development of smaller projects\\n- Good stepping stone to more complex state management\\n- Suitable when team has limited Flutter experience\\n\\n## Project Size Recommendations\\n\\n < /dev/null |  Project Size | Recommended Approach | Reasoning |\\n|-------------|---------------------|-----------|\\n| Small/Simple | Provider | Minimal overhead, quick setup |\\n| Medium | Riverpod | Balance of simplicity and power |\\n| Large/Complex | BLoC or Riverpod | Structured approach, scalability |\\n| Enterprise | BLoC with Clean Architecture | Maximum structure and maintainability |\\n\\n## Clean Architecture Integration\\n\\n### Layer Structure:\\n1. **Data Layer**: Manages data from various sources (APIs, databases)\\n2. **Domain Layer**: Contains core business logic (use cases, entities)\\n3. **Application Layer**: Coordinates between domain and presentation\\n4. **Presentation Layer**: UI and state management (BLoC/Riverpod)\\n\\n### Benefits:\\n- Separation of concerns\\n- Testability and maintainability\\n- Dependency inversion\\n- Platform independence\\n- Scalability for large applications\\n\\n## Key Takeaways for 2025:\\n- Riverpod gaining prominence as most modern solution\\n- BLoC remains strong for complex applications\\n- Provider maintains position for simpler projects\\n- Clean Architecture widely adopted for maintainable code\\n- State management choice should align with project complexity\"",
+      "type": "string",
+      "namespace": "default",
+      "tags": [],
+      "metadata": {},
+      "owner": "system",
+      "accessLevel": "shared",
+      "createdAt": "2025-07-10T12:20:45.736Z",
+      "updatedAt": "2025-07-10T12:20:45.736Z",
+      "lastAccessedAt": "2025-07-10T12:20:45.736Z",
+      "version": 1,
+      "size": 3077,
+      "compressed": true,
+      "checksum": "363e4634b477c504fd689282e88d30d834f6a6e27a32cf20312d30d7851ecf18",
+      "references": [],
+      "dependencies": []
+    }
+  ],
+  "statistics": {
+    "overview": {
+      "totalEntries": 2,
+      "totalSize": 5497,
+      "compressedEntries": 2,
+      "compressionRatio": 0,
+      "indexSize": 100,
+      "memoryUsage": 9742656,
+      "diskUsage": 0
+    },
+    "distribution": {
+      "byNamespace": {
+        "default": {
+          "count": 2,
+          "size": 5497
+        }
+      },
+      "byType": {
+        "string": {
+          "count": 2,
+          "size": 5497
+        }
+      },
+      "byOwner": {
+        "system": {
+          "count": 2,
+          "size": 5497
+        }
+      },
+      "byAccessLevel": {
+        "shared": {
+          "count": 2,
+          "size": 5497
+        }
+      }
+    },
+    "temporal": {
+      "entriesCreatedLast24h": 2,
+      "entriesUpdatedLast24h": 2,
+      "entriesAccessedLast24h": 2,
+      "oldestEntry": "2025-07-10T12:19:31.218Z",
+      "newestEntry": "2025-07-10T12:20:45.736Z"
+    },
+    "performance": {
+      "averageQueryTime": 0,
+      "averageWriteTime": 0,
+      "cacheHitRatio": 0,
+      "indexEfficiency": 0.95
+    },
+    "health": {
+      "expiredEntries": 0,
+      "orphanedReferences": 0,
+      "duplicateKeys": 0,
+      "corruptedEntries": 0,
+      "recommendedCleanup": false
+    },
+    "optimization": {
+      "suggestions": [],
+      "potentialSavings": {
+        "compression": 0,
+        "cleanup": 0,
+        "deduplication": 0
+      },
+      "indexOptimization": [
+        "Consider periodic index rebuilding for optimal performance"
+      ]
+    }
+  }
+}
