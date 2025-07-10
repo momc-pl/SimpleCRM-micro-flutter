@@ -1,0 +1,13 @@
+{
+  "objective": "Research changing architecture of this app, currently implemented as java spring boot with MVC pattern into microservices \n  architetcrure with flutter front end for web, ios and android. For micoservices please consider separate databases and different types \n  of DBs like for orders and order lines document data base could be used, system should be easily deployable to google cloud, azure or \n  AWS and all infrastracture should be included in the code in IaC, there should be designed approach to automated testing including \n  automated E2E tetsing including front end and back end interactions",
+  "strategy": "research",
+  "mode": "distributed",
+  "maxAgents": 5,
+  "timeout": 60,
+  "parallel": false,
+  "monitor": false,
+  "output": "json",
+  "outputDir": "./reports",
+  "timestamp": "2025-07-10T12:17:37.201Z",
+  "id": "swarm-research-distributed-1752149857201"
+}

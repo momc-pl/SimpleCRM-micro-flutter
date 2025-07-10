@@ -1,0 +1,126 @@
+import 'package:json_annotation/json_annotation.dart';
+import 'package:simple_crm_flutter/modules/deals/domain/entities/deal.dart';
+
+part 'deal_model.g.dart';
+
+@JsonSerializable()
+class DealModel extends Deal {
+  const DealModel({
+    required super.id,
+    required super.title,
+    required super.description,
+    required super.customerId,
+    super.contactId,
+    required super.assignedUserId,
+    super.createdByUserId,
+    required super.status,
+    required super.priority,
+    required super.source,
+    required super.value,
+    required super.currency,
+    required super.probability,
+    required super.expectedCloseDate,
+    super.actualCloseDate,
+    required super.createdAt,
+    required super.updatedAt,
+    super.notes,
+    super.tags,
+    super.lossReason,
+    super.competitorName,
+    super.customFields,
+    super.attachments,
+    super.nextAction,
+    super.nextActionDate,
+    super.totalTasks,
+    super.completedTasks,
+    super.discountPercent,
+    super.discountAmount,
+    super.paymentTerms,
+    super.deliveryTerms,
+    super.productIds,
+    super.proposalUrl,
+    super.contractUrl,
+  });
+
+  factory DealModel.fromJson(Map<String, dynamic> json) => _$DealModelFromJson(json);
+  
+  Map<String, dynamic> toJson() => _$DealModelToJson(this);
+  
+  factory DealModel.fromEntity(Deal deal) {
+    return DealModel(
+      id: deal.id,
+      title: deal.title,
+      description: deal.description,
+      customerId: deal.customerId,
+      contactId: deal.contactId,
+      assignedUserId: deal.assignedUserId,
+      createdByUserId: deal.createdByUserId,
+      status: deal.status,
+      priority: deal.priority,
+      source: deal.source,
+      value: deal.value,
+      currency: deal.currency,
+      probability: deal.probability,
+      expectedCloseDate: deal.expectedCloseDate,
+      actualCloseDate: deal.actualCloseDate,
+      createdAt: deal.createdAt,
+      updatedAt: deal.updatedAt,
+      notes: deal.notes,
+      tags: deal.tags,
+      lossReason: deal.lossReason,
+      competitorName: deal.competitorName,
+      customFields: deal.customFields,
+      attachments: deal.attachments,
+      nextAction: deal.nextAction,
+      nextActionDate: deal.nextActionDate,
+      totalTasks: deal.totalTasks,
+      completedTasks: deal.completedTasks,
+      discountPercent: deal.discountPercent,
+      discountAmount: deal.discountAmount,
+      paymentTerms: deal.paymentTerms,
+      deliveryTerms: deal.deliveryTerms,
+      productIds: deal.productIds,
+      proposalUrl: deal.proposalUrl,
+      contractUrl: deal.contractUrl,
+    );
+  }
+
+  Deal toEntity() {
+    return Deal(
+      id: id,
+      title: title,
+      description: description,
+      customerId: customerId,
+      contactId: contactId,
+      assignedUserId: assignedUserId,
+      createdByUserId: createdByUserId,
+      status: status,
+      priority: priority,
+      source: source,
+      value: value,
+      currency: currency,
+      probability: probability,
+      expectedCloseDate: expectedCloseDate,
+      actualCloseDate: actualCloseDate,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      notes: notes,
+      tags: tags,
+      lossReason: lossReason,
+      competitorName: competitorName,
+      customFields: customFields,
+      attachments: attachments,
+      nextAction: nextAction,
+      nextActionDate: nextActionDate,
+      totalTasks: totalTasks,
+      completedTasks: completedTasks,
+      discountPercent: discountPercent,
+      discountAmount: discountAmount,
+      paymentTerms: paymentTerms,
+      deliveryTerms: deliveryTerms,
+      productIds: productIds,
+      proposalUrl: proposalUrl,
+      contractUrl: contractUrl,
+    );
+  }
+}
