@@ -1,26 +1,87 @@
 import 'package:dio/dio.dart';
 import 'package:simple_crm_flutter/core/constants/api_constants.dart';
+import 'package:simple_crm_flutter/core/config/api_config.dart';
+import 'package:simple_crm_flutter/core/network/interceptors/auth_interceptor.dart';
 import 'package:simple_crm_flutter/core/utils/logger.dart';
 
 class DioClient {
   final Dio _dio;
   
   DioClient(this._dio) {
+    _initializeClient();
+  }
+  
+  void _initializeClient() {
     _dio.options = BaseOptions(
-      baseUrl: ApiConstants.baseUrl,
-      connectTimeout: const Duration(milliseconds: 30000),
-      receiveTimeout: const Duration(milliseconds: 30000),
+      baseUrl: ApiConfig.baseUrl,
+      connectTimeout: ApiConfig.connectTimeout,
+      receiveTimeout: ApiConfig.receiveTimeout,
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'X-API-Version': ApiConstants.apiVersion,
       },
     );
     
+    // Add auth interceptor first (will be injected via DI)
+    // _dio.interceptors.add(AuthInterceptor());
+    
+    // Add logging interceptor only in debug mode
+    if (ApiConfig.isLoggingEnabled) {
+      _dio.interceptors.add(
+        LogInterceptor(
+          requestBody: true,
+          responseBody: true,
+          logPrint: (log) => AppLogger.debug(log.toString()),
+        ),
+      );
+    }
+    
+    // Add retry interceptor for microservices resilience
     _dio.interceptors.add(
-      LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-        logPrint: (log) => AppLogger.debug(log.toString()),
+      InterceptorsWrapper(
+        onError: (error, handler) async {
+          if (_shouldRetry(error)) {
+            AppLogger.warning('Retrying request due to: ${error.message}');
+            try {
+              final response = await _retry(error.requestOptions);
+              handler.resolve(response);
+            } catch (e) {
+              handler.next(error);
+            }
+          } else {
+            handler.next(error);
+          }
+        },
+      ),
+    );
+  }
+  
+  void addAuthInterceptor(AuthInterceptor authInterceptor) {
+    // Remove existing auth interceptors
+    _dio.interceptors.removeWhere((interceptor) => interceptor is AuthInterceptor);
+    // Add new auth interceptor at the beginning
+    _dio.interceptors.insert(0, authInterceptor);
+  }
+  
+  bool _shouldRetry(DioException error) {
+    return error.type == DioExceptionType.connectionTimeout ||
+           error.type == DioExceptionType.receiveTimeout ||
+           error.type == DioExceptionType.sendTimeout ||
+           (error.response?.statusCode != null && 
+            error.response!.statusCode! >= 500);
+  }
+  
+  Future<Response> _retry(RequestOptions requestOptions) async {
+    final retryDio = Dio();
+    retryDio.options = _dio.options;
+    return await retryDio.request(
+      requestOptions.path,
+      data: requestOptions.data,
+      queryParameters: requestOptions.queryParameters,
+      options: Options(
+        method: requestOptions.method,
+        headers: requestOptions.headers,
       ),
     );
   }

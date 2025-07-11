@@ -1,0 +1,116 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: api-gateway
+  
+  cloud:
+    gateway:
+      default-filters:
+        - name: Retry
+          args:
+            retries: 3
+            methods: GET,POST,PUT,DELETE
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenish-rate: 10
+            redis-rate-limiter.burst-capacity: 20
+            redis-rate-limiter.requested-tokens: 1
+      routes:
+        # Auth Service Routes
+        - id: auth-service
+          uri: ${AUTH_SERVICE_URL:http://localhost:8080}
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - StripPrefix=0
+            
+        # Customer Service Routes
+        - id: customer-service
+          uri: ${CUSTOMER_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/customers/**
+          filters:
+            - StripPrefix=0
+            - name: AuthenticationFilter
+            
+        # Product Service Routes
+        - id: product-service
+          uri: ${PRODUCT_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/products/**
+          filters:
+            - StripPrefix=0
+            - name: AuthenticationFilter
+            
+        # Order Service Routes
+        - id: order-service
+          uri: ${ORDER_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/v1/orders/**
+          filters:
+            - StripPrefix=0
+            - name: AuthenticationFilter
+            
+        # Sales Pipeline Service Routes
+        - id: sales-pipeline-service
+          uri: ${SALES_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/v1/sales/**
+          filters:
+            - StripPrefix=0
+            - name: AuthenticationFilter
+      
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: 
+              - "${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080}"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+
+  security:
+    jwt:
+      secret: ${JWT_SECRET:mySecretKey}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+logging:
+  level:
+    com.simplecrm: ${LOG_LEVEL:INFO}
+    org.springframework.cloud.gateway: ${GATEWAY_LOG_LEVEL:INFO}
+    org.springframework.security: ${SECURITY_LOG_LEVEL:WARN}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Service URLs
+services:
+  auth:
+    url: ${AUTH_SERVICE_URL:http://localhost:8080}
+  customer:
+    url: ${CUSTOMER_SERVICE_URL:http://localhost:8081}
+  product:
+    url: ${PRODUCT_SERVICE_URL:http://localhost:8082}
+  order:
+    url: ${ORDER_SERVICE_URL:http://localhost:8083}
+  sales:
+    url: ${SALES_SERVICE_URL:http://localhost:8084}

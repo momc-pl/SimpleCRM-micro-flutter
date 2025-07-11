@@ -59,7 +59,7 @@ class AuthRemoteDataSource {
   
   Future<UserModel> getCurrentUser() async {
     try {
-      final response = await _dioClient.get('/auth/me');
+      final response = await _dioClient.get(ApiConstants.currentUser);
       
       AppLogger.debug('Get current user response: ${response.data}');
       

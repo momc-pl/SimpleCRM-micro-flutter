@@ -1,0 +1,56 @@
+server:
+  port: 8082
+  servlet:
+    context-path: /api/v1
+
+spring:
+  application:
+    name: product-service
+  
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/product_db}
+    username: ${DB_USERNAME:productuser}
+    password: ${DB_PASSWORD:productsecret}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: ${DDL_AUTO:update}
+    show-sql: ${SHOW_SQL:false}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  security:
+    jwt:
+      secret: ${JWT_SECRET:mySecretKey}
+      expiration: ${JWT_EXPIRATION:86400}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.simplecrm: ${LOG_LEVEL:INFO}
+    org.springframework.security: ${SECURITY_LOG_LEVEL:WARN}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+api:
+  version: v1
+  title: Product Management Service
+  description: REST API for product catalog management
+
+feign:
+  client:
+    config:
+      auth-service:
+        url: ${AUTH_SERVICE_URL:http://localhost:8080/api/v1}

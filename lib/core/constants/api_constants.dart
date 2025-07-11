@@ -1,32 +1,50 @@
 class ApiConstants {
-  static const String baseUrl = 'http://localhost:8080/api';
+  static const String baseUrl = 'http://localhost:8090/api';
   
-  // Auth endpoints
-  static const String login = '/auth/login';
-  static const String logout = '/auth/logout';
-  static const String refreshToken = '/auth/refresh';
+  // API Version
+  static const String apiVersion = 'v1';
   
-  // Customer endpoints
-  static const String customers = '/customers';
-  static const String customerById = '/customers/{id}';
+  // Auth Service endpoints (through API Gateway)
+  static const String login = '/v1/auth/login';
+  static const String logout = '/v1/auth/logout';
+  static const String refreshToken = '/v1/auth/refresh';
+  static const String register = '/v1/auth/register';
+  static const String currentUser = '/v1/auth/me';
   
-  // Contact endpoints
-  static const String contacts = '/contacts';
-  static const String contactById = '/contacts/{id}';
+  // Customer Service endpoints (through API Gateway)
+  static const String customers = '/v1/customers';
+  static const String customerById = '/v1/customers/{id}';
+  static const String customerStats = '/v1/customers/stats';
+  static const String recentCustomers = '/v1/customers/recent';
+  static const String customerBulkDelete = '/v1/customers/bulk';
+  static const String customerStatus = '/v1/customers/{id}/status';
   
-  // Sales endpoints
-  static const String sales = '/sales';
-  static const String salesById = '/sales/{id}';
+  // Contact Service endpoints (through API Gateway)
+  static const String contacts = '/v1/contacts';
+  static const String contactById = '/v1/contacts/{id}';
   
-  // Dashboard endpoints
-  static const String dashboardStats = '/dashboard/stats';
-  static const String dashboardReports = '/dashboard/reports';
+  // Product Service endpoints (through API Gateway)
+  static const String products = '/v1/products';
+  static const String productById = '/v1/products/{id}';
+  static const String productStats = '/v1/products/stats';
+  static const String productCategories = '/v1/products/categories';
   
-  // Product endpoints
-  static const String products = '/products';
-  static const String productById = '/products/{id}';
+  // Order Service endpoints (through API Gateway)
+  static const String orders = '/v1/orders';
+  static const String orderById = '/v1/orders/{id}';
+  static const String orderStats = '/v1/orders/stats';
   
-  // Order endpoints
-  static const String orders = '/orders';
-  static const String orderById = '/orders/{id}';
+  // Sales Pipeline Service endpoints (through API Gateway)
+  static const String sales = '/v1/sales';
+  static const String salesById = '/v1/sales/{id}';
+  static const String salesPipeline = '/v1/sales/pipeline';
+  static const String salesStats = '/v1/sales/stats';
+  
+  // Dashboard endpoints (aggregated data through API Gateway)
+  static const String dashboardStats = '/v1/dashboard/stats';
+  static const String dashboardReports = '/v1/dashboard/reports';
+  static const String dashboardMetrics = '/v1/dashboard/metrics';
+  
+  // Gateway health check
+  static const String healthCheck = '/actuator/health';
 }

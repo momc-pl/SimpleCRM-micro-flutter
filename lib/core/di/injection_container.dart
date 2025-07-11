@@ -16,6 +16,8 @@ import 'package:simple_crm_flutter/modules/customers/domain/usecases/get_custome
 import 'package:simple_crm_flutter/modules/customers/domain/usecases/create_customer_usecase.dart';
 import 'package:simple_crm_flutter/modules/customers/domain/usecases/update_customer_usecase.dart';
 import 'package:simple_crm_flutter/modules/customers/domain/usecases/delete_customer_usecase.dart';
+import 'package:simple_crm_flutter/core/services/health_check_service.dart';
+import 'package:simple_crm_flutter/core/services/microservices_coordinator.dart';
 
 final sl = GetIt.instance;
 
@@ -40,7 +42,20 @@ Future<void> initializeDependencies() async {
   });
   
   sl.registerLazySingleton<DioClient>(
-    () => DioClient(sl()),
+    () {
+      final client = DioClient(sl());
+      client.addAuthInterceptor(sl<AuthInterceptor>());
+      return client;
+    },
+  );
+  
+  // Microservices coordination
+  sl.registerLazySingleton<HealthCheckService>(
+    () => HealthCheckService(sl()),
+  );
+  
+  sl.registerLazySingleton<MicroservicesCoordinator>(
+    () => MicroservicesCoordinator(sl()),
   );
   
   // Auth module

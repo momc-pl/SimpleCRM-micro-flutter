@@ -6,7 +6,7 @@ class ApiConfig {
   static const Environment _currentEnvironment = Environment.development;
   
   static const Map<Environment, String> _baseUrls = {
-    Environment.development: 'http://localhost:8080/api',
+    Environment.development: 'http://localhost:8090/api',
     Environment.staging: 'https://staging-api.simplecrm.com/api',
     Environment.production: 'https://api.simplecrm.com/api',
   };

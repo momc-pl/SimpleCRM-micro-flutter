@@ -5,17 +5,31 @@ import 'package:simple_crm_flutter/core/di/injection_container.dart';
 import 'package:simple_crm_flutter/core/routing/app_router.dart';
 import 'package:simple_crm_flutter/core/theme/app_theme.dart';
 import 'package:simple_crm_flutter/core/utils/logger.dart';
+import 'package:simple_crm_flutter/core/services/microservices_coordinator.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize dependency injection
-  await initializeDependencies();
-  
-  // Initialize logger
-  AppLogger.init();
-  
-  runApp(const ProviderScope(child: SimpleCrmApp()));
+  try {
+    // Initialize logger first
+    AppLogger.init();
+    AppLogger.info('Starting SimpleCRM Flutter application...');
+    
+    // Initialize dependency injection
+    await initializeDependencies();
+    AppLogger.info('Dependency injection initialized');
+    
+    // Initialize microservices coordination
+    final coordinator = sl<MicroservicesCoordinator>();
+    await coordinator.initialize();
+    AppLogger.info('Microservices coordinator initialized');
+    
+    runApp(const ProviderScope(child: SimpleCrmApp()));
+  } catch (e, stackTrace) {
+    AppLogger.error('Failed to initialize application: $e', stackTrace);
+    // In production, you might want to show an error screen
+    runApp(const ProviderScope(child: SimpleCrmApp()));
+  }
 }
 
 class SimpleCrmApp extends ConsumerWidget {

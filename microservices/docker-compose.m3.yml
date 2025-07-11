@@ -1,0 +1,365 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database - ARM64 optimized
+  postgres:
+    image: postgres:15-alpine  # Alpine for better ARM64 performance
+    container_name: crm-postgres-m3
+    platform: linux/arm64
+    environment:
+      POSTGRES_DB: crm_main
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      # ARM64 optimizations
+      POSTGRES_SHARED_BUFFERS: 256MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 1GB
+      POSTGRES_WORK_MEM: 8MB
+      POSTGRES_MAINTENANCE_WORK_MEM: 128MB
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_m3:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d/
+    networks:
+      - crm-network-m3
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    restart: unless-stopped
+
+  # Auth Service - ARM64 optimized
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile.m3
+      platforms:
+        - linux/arm64
+    container_name: auth-service-m3
+    platform: linux/arm64
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/auth_db
+      - DB_USERNAME=authuser
+      - DB_PASSWORD=authsecret
+      - JWT_SECRET=mySecretKey
+      - JWT_EXPIRATION=86400
+      - JWT_REFRESH_EXPIRATION=604800
+      # ARM64 JVM optimizations
+      - JAVA_OPTS=-Xmx512m -Xms256m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - crm-network-m3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/api/v1/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Customer Service - ARM64 optimized
+  customer-service:
+    build:
+      context: ./customer-service
+      dockerfile: Dockerfile.m3
+      platforms:
+        - linux/arm64
+    container_name: customer-service-m3
+    platform: linux/arm64
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/customer_db
+      - DB_USERNAME=customeruser
+      - DB_PASSWORD=customersecret
+      - JWT_SECRET=mySecretKey
+      - AUTH_SERVICE_URL=http://auth-service:8080/api/v1
+      # ARM64 JVM optimizations
+      - JAVA_OPTS=-Xmx512m -Xms256m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    networks:
+      - crm-network-m3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8081/api/v1/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Product Service - ARM64 optimized
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile.m3
+      platforms:
+        - linux/arm64
+    container_name: product-service-m3
+    platform: linux/arm64
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/product_db
+      - DB_USERNAME=productuser
+      - DB_PASSWORD=productsecret
+      - JWT_SECRET=mySecretKey
+      - AUTH_SERVICE_URL=http://auth-service:8080/api/v1
+      # ARM64 JVM optimizations
+      - JAVA_OPTS=-Xmx512m -Xms256m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    networks:
+      - crm-network-m3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8082/api/v1/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Order Service - ARM64 optimized
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile.m3
+      platforms:
+        - linux/arm64
+    container_name: order-service-m3
+    platform: linux/arm64
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/order_db
+      - DB_USERNAME=orderuser
+      - DB_PASSWORD=ordersecret
+      - JWT_SECRET=mySecretKey
+      - AUTH_SERVICE_URL=http://auth-service:8080/api/v1
+      - CUSTOMER_SERVICE_URL=http://customer-service:8081/api/v1
+      - PRODUCT_SERVICE_URL=http://product-service:8082/api/v1
+      # ARM64 JVM optimizations
+      - JAVA_OPTS=-Xmx512m -Xms256m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+      customer-service:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
+    networks:
+      - crm-network-m3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8083/api/v1/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Sales Pipeline Service - ARM64 optimized
+  sales-pipeline-service:
+    build:
+      context: ./sales-pipeline-service
+      dockerfile: Dockerfile.m3
+      platforms:
+        - linux/arm64
+    container_name: sales-pipeline-service-m3
+    platform: linux/arm64
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/sales_db
+      - DB_USERNAME=salesuser
+      - DB_PASSWORD=salessecret
+      - JWT_SECRET=mySecretKey
+      - AUTH_SERVICE_URL=http://auth-service:8080/api/v1
+      - CUSTOMER_SERVICE_URL=http://customer-service:8081/api/v1
+      - PRODUCT_SERVICE_URL=http://product-service:8082/api/v1
+      # ARM64 JVM optimizations
+      - JAVA_OPTS=-Xmx512m -Xms256m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+      customer-service:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
+    networks:
+      - crm-network-m3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8084/api/v1/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # API Gateway - ARM64 optimized
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile.m3
+      platforms:
+        - linux/arm64
+    container_name: api-gateway-m3
+    platform: linux/arm64
+    environment:
+      - JWT_SECRET=mySecretKey
+      - AUTH_SERVICE_URL=http://auth-service:8080
+      - CUSTOMER_SERVICE_URL=http://customer-service:8081
+      - PRODUCT_SERVICE_URL=http://product-service:8082
+      - ORDER_SERVICE_URL=http://order-service:8083
+      - SALES_SERVICE_URL=http://sales-pipeline-service:8084
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
+      # ARM64 JVM optimizations
+      - JAVA_OPTS=-Xmx768m -Xms384m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    ports:
+      - "8090:8090"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      customer-service:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
+      order-service:
+        condition: service_healthy
+      sales-pipeline-service:
+        condition: service_healthy
+    networks:
+      - crm-network-m3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 384M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8090/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Monitoring and Observability (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-m3
+    platform: linux/arm64
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data_m3:/prometheus
+    networks:
+      - crm-network-m3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-m3
+    platform: linux/arm64
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data_m3:/var/lib/grafana
+    networks:
+      - crm-network-m3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    restart: unless-stopped
+
+volumes:
+  postgres_data_m3:
+    driver: local
+  prometheus_data_m3:
+    driver: local
+  grafana_data_m3:
+    driver: local
+
+networks:
+  crm-network-m3:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: crm-br-m3
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -1,0 +1,188 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:13
+    container_name: crm-postgres
+    environment:
+      POSTGRES_DB: crm_main
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d/
+    networks:
+      - crm-network
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/auth_db
+      - DB_USERNAME=authuser
+      - DB_PASSWORD=authsecret
+      - JWT_SECRET=mySecretKey
+      - JWT_EXPIRATION=86400
+      - JWT_REFRESH_EXPIRATION=604800
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Customer Service
+  customer-service:
+    build:
+      context: ./customer-service
+      dockerfile: Dockerfile
+    container_name: customer-service
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/customer_db
+      - DB_USERNAME=customeruser
+      - DB_PASSWORD=customersecret
+      - JWT_SECRET=mySecretKey
+      - AUTH_SERVICE_URL=http://auth-service:8080/api/v1
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+      - auth-service
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/api/v1/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Product Service
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    container_name: product-service
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/product_db
+      - DB_USERNAME=productuser
+      - DB_PASSWORD=productsecret
+      - JWT_SECRET=mySecretKey
+      - AUTH_SERVICE_URL=http://auth-service:8080/api/v1
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres
+      - auth-service
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/api/v1/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Order Service
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/order_db
+      - DB_USERNAME=orderuser
+      - DB_PASSWORD=ordersecret
+      - JWT_SECRET=mySecretKey
+      - AUTH_SERVICE_URL=http://auth-service:8080/api/v1
+      - CUSTOMER_SERVICE_URL=http://customer-service:8081/api/v1
+      - PRODUCT_SERVICE_URL=http://product-service:8082/api/v1
+    ports:
+      - "8083:8083"
+    depends_on:
+      - postgres
+      - auth-service
+      - customer-service
+      - product-service
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/api/v1/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Sales Pipeline Service
+  sales-pipeline-service:
+    build:
+      context: ./sales-pipeline-service
+      dockerfile: Dockerfile
+    container_name: sales-pipeline-service
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/sales_db
+      - DB_USERNAME=salesuser
+      - DB_PASSWORD=salessecret
+      - JWT_SECRET=mySecretKey
+      - AUTH_SERVICE_URL=http://auth-service:8080/api/v1
+      - CUSTOMER_SERVICE_URL=http://customer-service:8081/api/v1
+      - PRODUCT_SERVICE_URL=http://product-service:8082/api/v1
+    ports:
+      - "8084:8084"
+    depends_on:
+      - postgres
+      - auth-service
+      - customer-service
+      - product-service
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/api/v1/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    environment:
+      - JWT_SECRET=mySecretKey
+      - AUTH_SERVICE_URL=http://auth-service:8080
+      - CUSTOMER_SERVICE_URL=http://customer-service:8081
+      - PRODUCT_SERVICE_URL=http://product-service:8082
+      - ORDER_SERVICE_URL=http://order-service:8083
+      - SALES_SERVICE_URL=http://sales-pipeline-service:8084
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
+    ports:
+      - "8090:8090"
+    depends_on:
+      - auth-service
+      - customer-service
+      - product-service
+      - order-service
+      - sales-pipeline-service
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+
+networks:
+  crm-network:
+    driver: bridge
