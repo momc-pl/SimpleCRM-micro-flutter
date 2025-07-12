@@ -1,290 +1,311 @@
-# SimpleCRM - Spring Boot CRM System
+# SimpleCRM - Microservices + Flutter CRM System
 
-A modern Customer Relationship Management system built with Spring Boot, featuring Google OAuth2 authentication, PostgreSQL database, and Docker containerization.
+A modern Customer Relationship Management system built with **microservices architecture** and **Flutter frontend**, featuring JWT authentication, PostgreSQL databases, and Docker containerization.
 
-## Features
+## 🏗️ **Architecture Overview**
 
-- **Authentication**: Google OAuth2 integration
-- **Customer Management**: CRUD operations for customers and addresses
-- **Product Catalog**: Manage products with pricing and VAT
-- **Order Management**: Create and track orders
-- **Responsive UI**: Bootstrap-based Thymeleaf templates
-- **Containerized**: Docker support for easy deployment
-- **Cloud Ready**: Azure deployment support
-
-## Technology Stack
-
-- **Backend**: Spring Boot 3.1.0, Java 17
-- **Database**: PostgreSQL
-- **Security**: Spring Security with OAuth2
-- **Frontend**: Thymeleaf, Bootstrap 5
-- **Build**: Maven
-- **Containerization**: Docker
-- **Cloud**: Azure Container Instances, PostgreSQL Flexible Server
-
-## Quick Start
-
-### Prerequisites
-
-- Java 17 or later
-- Maven 3.6+
-- PostgreSQL 12+ (or Docker for local development)
-- Google OAuth2 credentials
-
-### Local Development Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd SimpleCRM-Radek
-   ```
-
-2. **Set up PostgreSQL database**
-   ```bash
-   # Using Docker
-   docker run --name postgres-crm \
-     -e POSTGRES_DB=appdb \
-     -e POSTGRES_USER=appuser \
-     -e POSTGRES_PASSWORD=appsecret \
-     -p 5432:5432 -d postgres:15
-   ```
-
-3. **Configure Google OAuth2**
-   - Go to [Google Cloud Console](https://console.cloud.google.com/)
-   - Create a new project or use existing
-   - Enable Google+ API
-   - Create OAuth2 credentials
-   - Add redirect URI: `http://localhost:8080/login/oauth2/code/google`
-
-4. **Set environment variables**
-   ```bash
-   export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/appdb
-   export SPRING_DATASOURCE_USERNAME=appuser
-   export SPRING_DATASOURCE_PASSWORD=appsecret
-   export SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET=your_google_client_secret
-   ```
-
-5. **Run the application**
-   ```bash
-   ./mvnw spring-boot:run
-   ```
-
-6. **Access the application**
-   - Open browser: http://localhost:8080
-   - Sign in with Google account
-
-## Docker Deployment
-
-### Build Docker Image
-
-```bash
-# Build for x86_64 architecture (required for Azure/most cloud platforms)
-docker build --platform linux/amd64 -t simplecrm:latest .
-
-# Or for local development (current architecture)
-docker build -t simplecrm:latest .
+```
+┌─────────────────┐    ┌─────────────────┐
+│   Flutter App   │    │   API Gateway   │
+│  (Cross-Platform)│◄──►│   (Port 8090)   │
+└─────────────────┘    └─────────┬───────┘
+                                 │
+              ┌──────────────────┼──────────────────┐
+              │                  │                  │
+    ┌─────────▼───────┐ ┌────────▼────────┐ ┌──────▼──────┐
+    │  Auth Service   │ │ Customer Service│ │Product Svc  │
+    │   (Port 8080)   │ │  (Port 8081)    │ │(Port 8082)  │
+    └─────────────────┘ └─────────────────┘ └─────────────┘
+              │                  │                  │
+              └──────────────────┼──────────────────┘
+                                 │
+                    ┌────────────▼────────────┐
+                    │     PostgreSQL DBs      │
+                    │   (Service-specific)    │
+                    └─────────────────────────┘
 ```
 
-### Run with Docker Compose
+## ✨ **Features**
 
-Create `docker-compose.yml`:
+### **Backend Microservices**
+- **🔐 Auth Service**: JWT authentication and user management
+- **👥 Customer Service**: Customer CRUD and relationship management  
+- **📦 Product Service**: Product catalog with inventory tracking
+- **🛒 Order Service**: Order lifecycle and payment management
+- **🎯 Sales Pipeline**: Lead and opportunity tracking *(pending)*
+- **🌐 API Gateway**: Single entry point with routing and security
 
-```yaml
-version: '3.8'
-services:
-  postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: appdb
-      POSTGRES_USER: appuser
-      POSTGRES_PASSWORD: appsecret
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+### **Frontend**
+- **📱 Flutter App**: Cross-platform (iOS, Android, Web, Desktop)
+- **🔄 State Management**: Riverpod with reactive patterns
+- **🔒 Secure Storage**: JWT token management
+- **🌐 API Integration**: Retrofit REST client with error handling
 
-  app:
-    image: simplecrm:latest
-    ports:
-      - "8080:8080"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/appdb
-      SPRING_DATASOURCE_USERNAME: appuser
-      SPRING_DATASOURCE_PASSWORD: appsecret
-      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-    depends_on:
-      - postgres
+### **Infrastructure**
+- **🐳 Containerized**: Docker Compose orchestration
+- **🗄️ Multi-Database**: Service-specific PostgreSQL instances
+- **☁️ Cloud Ready**: Azure/AWS deployment support
+- **📊 Monitoring**: Health checks and metrics
 
-volumes:
-  postgres_data:
-```
+## 🚀 **Technology Stack**
 
-Run with:
+### **Backend**
+- **Framework**: Spring Boot 3.1+ with Java 17
+- **Database**: PostgreSQL (service-specific instances)
+- **Security**: JWT authentication with Spring Security
+- **Communication**: REST APIs with OpenFeign client
+- **Build**: Maven with multi-module structure
+- **Containerization**: Docker with optimized images
+
+### **Frontend**
+- **Framework**: Flutter 3.10+ with Dart
+- **State Management**: Riverpod 2.4+
+- **HTTP Client**: Dio with Retrofit code generation
+- **Authentication**: JWT with Flutter Secure Storage
+- **Routing**: Go Router with guards
+- **Dependency Injection**: GetIt service locator
+
+## 🏃‍♂️ **Quick Start**
+
+### **Prerequisites**
+- **Docker & Docker Compose**
+- **Flutter SDK 3.10+** (for frontend development)
+- **Java 17+** (for backend development)
+- **PostgreSQL** (or use Docker)
+
+### **1. Start Microservices**
 ```bash
-export GOOGLE_CLIENT_SECRET=your_google_client_secret
+cd microservices
 docker-compose up -d
 ```
 
-## Azure Deployment
-
-### Prerequisites
-- Azure CLI installed and logged in
-- Azure subscription
-
-### Deploy to Azure
-
-1. **Create resource group**
-   ```bash
-   az group create --name rg-simplecrm --location "East US"
-   ```
-
-2. **Deploy infrastructure using Bicep**
-   ```bash
-   cd azure
-   az deployment group create \
-     --resource-group rg-simplecrm \
-     --template-file bicep/infrastructure.bicep \
-     --parameters @bicep/parameters.json
-   ```
-
-3. **Build and push Docker image**
-   ```bash
-   # Login to Azure Container Registry
-   az acr login --name your-acr-name
-   
-   # Build and push
-   docker build --platform linux/amd64 -t your-acr-name.azurecr.io/simplecrm:latest .
-   docker push your-acr-name.azurecr.io/simplecrm:latest
-   ```
-
-4. **Deploy container**
-   ```bash
-   az deployment group create \
-     --resource-group rg-simplecrm \
-     --template-file bicep/container.bicep \
-     --parameters @bicep/parameters.json
-   ```
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `SPRING_DATASOURCE_URL` | PostgreSQL connection URL | `jdbc:postgresql://localhost:5432/appdb` |
-| `SPRING_DATASOURCE_USERNAME` | Database username | `appuser` |
-| `SPRING_DATASOURCE_PASSWORD` | Database password | Required |
-| `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET` | Google OAuth2 client secret | Required |
-| `PORT` | Application port | `8080` |
-| `LOGGING_LEVEL_ROOT` | Logging level | `INFO` |
-
-### Google OAuth2 Setup
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create or select a project
-3. Enable Google+ API
-4. Go to "Credentials" → "Create Credentials" → "OAuth client ID"
-5. Choose "Web application"
-6. Add authorized redirect URIs:
-   - Local: `http://localhost:8080/login/oauth2/code/google`
-   - Production: `https://your-domain.com/login/oauth2/code/google`
-
-## Database Schema
-
-The application uses JPA/Hibernate to automatically create the database schema. Key entities:
-
-- **Users**: Google OAuth2 authenticated users
-- **Customers**: Business customers with contact information
-- **Addresses**: Customer addresses (one-to-many)
-- **Products**: Product catalog with pricing and VAT
-- **Orders**: Customer orders
-- **Order Lines**: Order line items with products and quantities
-
-## API Endpoints
-
-### Web Routes
-- `GET /` - Dashboard
-- `GET /login` - Login page
-- `GET /customers/{id}` - Customer details
-- `GET /customers/{id}/edit` - Edit customer
-- `POST /customers/{id}` - Update customer
-- `POST /customers/{id}/addresses` - Add address
-
-### Health Check
-- `GET /actuator/health` - Application health (if Actuator is enabled)
-
-## Development
-
-### Running Tests
+### **2. Verify Services**
 ```bash
+# Check all services are running
+curl http://localhost:8090/actuator/health
+
+# Test individual services
+curl http://localhost:8080/actuator/health  # Auth Service
+curl http://localhost:8081/actuator/health  # Customer Service  
+curl http://localhost:8082/actuator/health  # Product Service
+curl http://localhost:8083/actuator/health  # Order Service
+```
+
+### **3. Start Flutter App**
+```bash
+# Install dependencies
+flutter pub get
+
+# Generate code
+flutter packages pub run build_runner build
+
+# Run on desired platform
+flutter run -d chrome        # Web
+flutter run -d macos         # macOS
+flutter run                  # iOS Simulator (default)
+```
+
+### **4. Access Application**
+- **API Gateway**: http://localhost:8090
+- **Flutter Web**: http://localhost:3000 (or auto-assigned)
+- **API Documentation**: http://localhost:8090/swagger-ui.html
+
+## 🏗️ **Development Setup**
+
+### **Backend Development**
+```bash
+# Start individual service for development
+cd microservices/customer-service
+./mvnw spring-boot:run
+
+# Run tests
 ./mvnw test
+
+# Build Docker image
+docker build -t customer-service .
 ```
 
-### Code Coverage
+### **Frontend Development**
 ```bash
-./mvnw clean test jacoco:report
+# Install Flutter if not present
+# Follow: https://docs.flutter.dev/get-started/install
+
+# Setup IDE integration
+flutter doctor
+
+# Hot reload development
+flutter run --hot
 ```
 
-### Building for Production
+## 📊 **Service Status**
+
+| Service | Status | API Port | Features |
+|---------|--------|----------|----------|
+| **🔐 Auth Service** | ✅ Complete | 8080 | JWT, User Management |
+| **👥 Customer Service** | ✅ Complete | 8081 | CRUD, Search, Multi-tenant |
+| **📦 Product Service** | ✅ Complete | 8082 | Catalog, Inventory, Categories |
+| **🛒 Order Service** | ✅ Complete | 8083 | Lifecycle, Payments, Items |
+| **🎯 Sales Pipeline** | ⏳ Pending | 8084 | Leads, Opportunities |
+| **🌐 API Gateway** | ✅ Complete | 8090 | Routing, Auth, Rate Limiting |
+
+## 🗂️ **Project Structure**
+
+```
+SimpleCRM-micro-flutter/
+├── microservices/              # Backend services
+│   ├── api-gateway/           # Central routing
+│   ├── auth-service/          # Authentication
+│   ├── customer-service/      # Customer management
+│   ├── product-service/       # Product catalog
+│   ├── order-service/         # Order processing
+│   ├── sales-pipeline-service/ # CRM pipeline (pending)
+│   ├── shared-lib/            # Common utilities
+│   └── docker-compose.yml     # Orchestration
+├── lib/                       # Flutter application
+│   ├── core/                  # Core utilities
+│   ├── modules/               # Feature modules
+│   │   ├── auth/             # Authentication
+│   │   ├── customers/        # Customer management
+│   │   ├── products/         # Product catalog
+│   │   └── orders/           # Order management
+│   └── shared/               # Shared components
+├── PROJECT_STATUS.md          # Development progress
+├── .archive/                  # Archived monolith files
+└── README.md                  # This file
+```
+
+## 🔧 **Configuration**
+
+### **Environment Variables**
+Create `.env` files in each service directory:
+
 ```bash
-./mvnw clean package -DskipTests
+# Database configuration
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/customer_db
+SPRING_DATASOURCE_USERNAME=customer_user
+SPRING_DATASOURCE_PASSWORD=customer_pass
+
+# JWT configuration  
+JWT_SECRET=your-super-secret-jwt-key
+JWT_EXPIRATION=86400000
+
+# Service discovery
+EUREKA_SERVER_URL=http://localhost:8761/eureka
 ```
 
-## Troubleshooting
+### **Flutter Configuration**
+```yaml
+# pubspec.yaml - main dependencies
+dependencies:
+  flutter_riverpod: ^2.4.9
+  dio: ^5.4.0
+  go_router: ^12.1.3
+  flutter_secure_storage: ^9.0.0
+  get_it: ^7.6.4
+```
 
-### Common Issues
+## 🧪 **Testing**
 
-1. **OAuth2 Login Fails**
-   - Check Google OAuth2 credentials
-   - Verify redirect URI matches exactly
-   - Ensure Google+ API is enabled
-
-2. **Database Connection Fails**
-   - Verify PostgreSQL is running
-   - Check connection URL and credentials
-   - For Azure: ensure firewall rules allow connection
-
-3. **Container Won't Start on Azure**
-   - Ensure Docker image is built for `linux/amd64` architecture
-   - Check container logs: `az container logs --resource-group rg-name --name container-name`
-   - Verify environment variables are set correctly
-
-4. **Template Not Found Errors**
-   - Ensure Thymeleaf templates are in `src/main/resources/templates/`
-   - Check template file names match controller return values
-
-### Useful Commands
-
+### **Backend Testing**
 ```bash
-# View application logs (local)
-./mvnw spring-boot:run --debug
+# Run all service tests
+cd microservices
+./build-all.sh test
 
-# View container logs (Azure)
-az container logs --resource-group rg-simplecrm --name simplecrm-app
-
-# Connect to PostgreSQL (local)
-psql -h localhost -U appuser -d appdb
-
-# Check Azure resources
-az resource list --resource-group rg-simplecrm --output table
+# Integration tests
+docker-compose -f docker-compose.test.yml up --abort-on-container-exit
 ```
 
-## Contributing
+### **Frontend Testing**
+```bash
+# Unit tests
+flutter test
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
+# Integration tests
+flutter test integration_test/
 
-## License
+# Widget tests
+flutter test test/widget_test.dart
+```
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 📈 **API Documentation**
 
-## Support
+Each service provides Swagger documentation:
+- **API Gateway**: http://localhost:8090/swagger-ui.html
+- **Auth Service**: http://localhost:8080/swagger-ui.html
+- **Customer Service**: http://localhost:8081/swagger-ui.html
+- **Product Service**: http://localhost:8082/swagger-ui.html
+- **Order Service**: http://localhost:8083/swagger-ui.html
 
-For support and questions:
-- Check the troubleshooting section
-- Review application logs
-- Create an issue in the repository
+## 🚀 **Deployment**
+
+### **Docker Deployment**
+```bash
+# Build all services
+cd microservices
+./build-all.sh
+
+# Deploy stack
+docker-compose up -d
+```
+
+### **Cloud Deployment**
+- **Azure**: Container Instances + PostgreSQL Flexible Server
+- **AWS**: ECS + RDS PostgreSQL
+- **GCP**: Cloud Run + Cloud SQL
+
+## 🔍 **Monitoring & Health**
+
+### **Health Checks**
+- **Aggregate**: http://localhost:8090/actuator/health
+- **Individual Services**: http://localhost:808X/actuator/health
+
+### **Metrics**
+- **Prometheus**: http://localhost:9090
+- **Grafana**: http://localhost:3001
+
+## 🤝 **Contributing**
+
+1. **Fork the repository**
+2. **Create feature branch**: `git checkout -b feature/amazing-feature`
+3. **Follow microservices patterns**: Use existing service structure
+4. **Add tests**: Both unit and integration tests
+5. **Update documentation**: README and service-specific docs
+6. **Submit PR**: With detailed description
+
+## 📋 **Development Roadmap**
+
+### **Current Sprint** *(80% Complete)*
+- ✅ Core microservices (Auth, Customer, Product, Order)
+- ✅ Flutter architecture and authentication
+- ⏳ Sales Pipeline Service implementation
+- ⏳ End-to-end integration testing
+
+### **Next Sprint**
+- 🎯 Sales Pipeline Service completion
+- 📱 Flutter UI/UX enhancements  
+- 🔄 Real-time notifications
+- 📊 Analytics dashboard
+
+### **Future Features**
+- 🤖 AI-powered lead scoring
+- 📧 Email marketing integration
+- 📱 Mobile offline mode
+- 🔗 Third-party CRM integrations
+
+## 📞 **Support & Documentation**
+
+- **Architecture Details**: `/microservices/README.md`
+- **API Documentation**: Swagger UI for each service
+- **Development Guide**: Individual service READMEs
+- **Deployment Guide**: `/microservices/docker-compose.yml`
+- **Project Status**: `/PROJECT_STATUS.md`
+
+## 📄 **License**
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**SimpleCRM**: Modern microservices CRM with Flutter frontend
+*Built for scalability, maintainability, and cross-platform excellence*
