@@ -1,85 +1,72 @@
-package com.simplecrm.entity;
+package com.simplecrm.dto;
 
-import com.simplecrm.shared.entity.BaseEntity;
+import com.simplecrm.entity.ProductStatus;
 
-import javax.persistence.*;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "products")
-public class Product extends BaseEntity {
-
-    @NotBlank
-    @Size(max = 200)
-    @Column(name = "name", nullable = false)
+public class ProductUpdateRequest {
+    @NotBlank(message = "Product name is required")
+    @Size(min = 2, max = 200, message = "Product name must be between 2 and 200 characters")
     private String name;
 
-    @Size(max = 1000)
-    @Column(name = "description")
+    @Size(max = 1000, message = "Description must not exceed 1000 characters")
     private String description;
 
-    @NotBlank
-    @Size(max = 50)
-    @Column(name = "sku", nullable = false, unique = true)
+    @NotBlank(message = "SKU is required")
+    @Size(min = 1, max = 50, message = "SKU must be between 1 and 50 characters")
     private String sku;
 
-    @NotNull
-    @DecimalMin(value = "0.0", inclusive = false)
-    @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    @NotNull(message = "Price is required")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
     private BigDecimal price;
 
-    @NotNull
-    @Column(name = "quantity_in_stock", nullable = false)
+    @NotNull(message = "Quantity in stock is required")
     private Integer quantityInStock;
 
-    @NotNull
-    @Column(name = "min_stock_level", nullable = false)
     private Integer minStockLevel = 0;
 
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
     private ProductStatus status = ProductStatus.ACTIVE;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private ProductCategory category;
+    private Long categoryId;
 
-    @Size(max = 100)
-    @Column(name = "brand")
+    @Size(max = 100, message = "Brand must not exceed 100 characters")
     private String brand;
 
-    @Size(max = 50)
-    @Column(name = "unit_of_measure")
+    @Size(max = 50, message = "Unit of measure must not exceed 50 characters")
     private String unitOfMeasure;
 
-    @Column(name = "weight", precision = 8, scale = 2)
+    @DecimalMin(value = "0.0", message = "Weight must be non-negative")
     private BigDecimal weight;
 
-    @Size(max = 500)
-    @Column(name = "image_url")
+    @Size(max = 500, message = "Image URL must not exceed 500 characters")
     private String imageUrl;
 
-    @Column(name = "is_featured")
     private Boolean isFeatured = false;
 
-    @NotNull
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    // Constructors
+    public ProductUpdateRequest() {}
 
-    // Default constructor
-    public Product() {}
-
-    // Constructor with essential fields
-    public Product(String name, String sku, BigDecimal price, Integer quantityInStock) {
+    public ProductUpdateRequest(String name, String description, String sku, BigDecimal price, 
+                              Integer quantityInStock, Integer minStockLevel, ProductStatus status,
+                              Long categoryId, String brand, String unitOfMeasure, 
+                              BigDecimal weight, String imageUrl, Boolean isFeatured) {
         this.name = name;
+        this.description = description;
         this.sku = sku;
         this.price = price;
         this.quantityInStock = quantityInStock;
+        this.minStockLevel = minStockLevel;
+        this.status = status;
+        this.categoryId = categoryId;
+        this.brand = brand;
+        this.unitOfMeasure = unitOfMeasure;
+        this.weight = weight;
+        this.imageUrl = imageUrl;
+        this.isFeatured = isFeatured;
     }
 
     // Getters and Setters
@@ -139,12 +126,12 @@ public class Product extends BaseEntity {
         this.status = status;
     }
 
-    public ProductCategory getCategory() {
-        return category;
+    public Long getCategoryId() {
+        return categoryId;
     }
 
-    public void setCategory(ProductCategory category) {
-        this.category = category;
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
     }
 
     public String getBrand() {
@@ -185,33 +172,5 @@ public class Product extends BaseEntity {
 
     public void setIsFeatured(Boolean isFeatured) {
         this.isFeatured = isFeatured;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    // Business methods
-    public boolean isLowStock() {
-        return quantityInStock <= minStockLevel;
-    }
-
-    public boolean isOutOfStock() {
-        return quantityInStock <= 0;
-    }
-
-    public void reduceStock(Integer quantity) {
-        if (quantity > quantityInStock) {
-            throw new IllegalArgumentException("Insufficient stock");
-        }
-        this.quantityInStock -= quantity;
-    }
-
-    public void increaseStock(Integer quantity) {
-        this.quantityInStock += quantity;
     }
 }
