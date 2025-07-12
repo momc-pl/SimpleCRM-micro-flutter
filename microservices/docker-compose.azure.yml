@@ -1,0 +1,431 @@
+version: '3.8'
+
+services:
+  # Azure PostgreSQL Database - AMD64 optimized
+  postgres:
+    image: postgres:15-alpine
+    container_name: crm-postgres-azure
+    platform: linux/amd64
+    environment:
+      POSTGRES_DB: crm_main
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      # Azure-optimized PostgreSQL settings
+      POSTGRES_SHARED_BUFFERS: 512MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 2GB
+      POSTGRES_WORK_MEM: 16MB
+      POSTGRES_MAINTENANCE_WORK_MEM: 256MB
+      POSTGRES_MAX_CONNECTIONS: 200
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_azure:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d/
+    networks:
+      - crm-network-azure
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # Auth Service - Azure AMD64 optimized
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile.azure
+      platforms:
+        - linux/amd64
+    container_name: auth-service-azure
+    platform: linux/amd64
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/auth_db
+      - DB_USERNAME=${AUTH_DB_USERNAME:-authuser}
+      - DB_PASSWORD=${AUTH_DB_PASSWORD:-authsecret}
+      - JWT_SECRET=${JWT_SECRET:-mySecretKey}
+      - JWT_EXPIRATION=86400
+      - JWT_REFRESH_EXPIRATION=604800
+      # Azure-specific configurations
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID:-}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET:-}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID:-}
+      - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPINSIGHTS_CONNECTION_STRING:-}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - crm-network-azure
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 384M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/api/v1/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # Customer Service - Azure AMD64 optimized
+  customer-service:
+    build:
+      context: ./customer-service
+      dockerfile: Dockerfile.azure
+      platforms:
+        - linux/amd64
+    container_name: customer-service-azure
+    platform: linux/amd64
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/customer_db
+      - DB_USERNAME=${CUSTOMER_DB_USERNAME:-customeruser}
+      - DB_PASSWORD=${CUSTOMER_DB_PASSWORD:-customersecret}
+      - JWT_SECRET=${JWT_SECRET:-mySecretKey}
+      - AUTH_SERVICE_URL=http://auth-service:8080/api/v1
+      - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPINSIGHTS_CONNECTION_STRING:-}
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    networks:
+      - crm-network-azure
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8081/api/v1/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # Product Service - Azure AMD64 optimized
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile.azure
+      platforms:
+        - linux/amd64
+    container_name: product-service-azure
+    platform: linux/amd64
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/product_db
+      - DB_USERNAME=${PRODUCT_DB_USERNAME:-productuser}
+      - DB_PASSWORD=${PRODUCT_DB_PASSWORD:-productsecret}
+      - JWT_SECRET=${JWT_SECRET:-mySecretKey}
+      - AUTH_SERVICE_URL=http://auth-service:8080/api/v1
+      - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPINSIGHTS_CONNECTION_STRING:-}
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    networks:
+      - crm-network-azure
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8082/api/v1/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # Order Service - Azure AMD64 optimized
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile.azure
+      platforms:
+        - linux/amd64
+    container_name: order-service-azure
+    platform: linux/amd64
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/order_db
+      - DB_USERNAME=${ORDER_DB_USERNAME:-orderuser}
+      - DB_PASSWORD=${ORDER_DB_PASSWORD:-ordersecret}
+      - JWT_SECRET=${JWT_SECRET:-mySecretKey}
+      - AUTH_SERVICE_URL=http://auth-service:8080/api/v1
+      - CUSTOMER_SERVICE_URL=http://customer-service:8081/api/v1
+      - PRODUCT_SERVICE_URL=http://product-service:8082/api/v1
+      - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPINSIGHTS_CONNECTION_STRING:-}
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+      customer-service:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
+    networks:
+      - crm-network-azure
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8083/api/v1/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # Contact Service - Azure AMD64 optimized
+  contact-service:
+    build:
+      context: ./contact-service
+      dockerfile: Dockerfile.azure
+      platforms:
+        - linux/amd64
+    container_name: contact-service-azure
+    platform: linux/amd64
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/contact_db
+      - DB_USERNAME=${CONTACT_DB_USERNAME:-contactuser}
+      - DB_PASSWORD=${CONTACT_DB_PASSWORD:-contactsecret}
+      - JWT_SECRET=${JWT_SECRET:-mySecretKey}
+      - AUTH_SERVICE_URL=http://auth-service:8080/api/v1
+      - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPINSIGHTS_CONNECTION_STRING:-}
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    networks:
+      - crm-network-azure
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8084/api/v1/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # API Gateway - Azure AMD64 optimized
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile.azure
+      platforms:
+        - linux/amd64
+    container_name: api-gateway-azure
+    platform: linux/amd64
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-mySecretKey}
+      - AUTH_SERVICE_URL=http://auth-service:8080
+      - CUSTOMER_SERVICE_URL=http://customer-service:8081
+      - PRODUCT_SERVICE_URL=http://product-service:8082
+      - ORDER_SERVICE_URL=http://order-service:8083
+      - CONTACT_SERVICE_URL=http://contact-service:8084
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,https://*.azurewebsites.net}
+      - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPINSIGHTS_CONNECTION_STRING:-}
+    ports:
+      - "8090:8090"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      customer-service:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
+      order-service:
+        condition: service_healthy
+      contact-service:
+        condition: service_healthy
+    networks:
+      - crm-network-azure
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1.5G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8090/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # Azure Monitor and Observability
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-azure
+    platform: linux/amd64
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data_azure:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    networks:
+      - crm-network-azure
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-azure
+    platform: linux/amd64
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_DOMAIN=${GRAFANA_DOMAIN:-localhost}
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+    volumes:
+      - grafana_data_azure:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - crm-network-azure
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+volumes:
+  postgres_data_azure:
+    driver: local
+  prometheus_data_azure:
+    driver: local
+  grafana_data_azure:
+    driver: local
+
+networks:
+  crm-network-azure:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: crm-br-azure
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+# Azure-specific configurations for Container Instances deployment
+x-azure-extensions:
+  container-group:
+    location: eastus
+    sku: Standard
+    restart-policy: Always
+    ip-address:
+      type: Public
+      ports:
+        - protocol: TCP
+          port: 8090
+    environment-variables:
+      - name: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - name: AZURE_REGION
+        value: eastus

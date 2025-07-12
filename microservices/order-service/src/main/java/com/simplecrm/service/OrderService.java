@@ -351,7 +351,7 @@ public class OrderService {
             HttpEntity<Void> entity = new HttpEntity<>(headers);
             
             ResponseEntity<Object> response = restTemplate.exchange(
-                "http://customer-service:8082/api/customers/" + customerId,
+                "http://customer-service:8081/api/v1/customers/" + customerId,
                 HttpMethod.GET,
                 entity,
                 Object.class
@@ -374,7 +374,7 @@ public class OrderService {
                 HttpEntity<Void> entity = new HttpEntity<>(headers);
                 
                 ResponseEntity<Object> response = restTemplate.exchange(
-                    "http://product-service:8083/api/products/" + item.getProductId(),
+                    "http://product-service:8083/api/v1/products/" + item.getProductId(),
                     HttpMethod.GET,
                     entity,
                     Object.class
@@ -406,7 +406,7 @@ public class OrderService {
                 HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
                 
                 restTemplate.exchange(
-                    "http://product-service:8083/api/products/" + item.getProductId() + "/stock",
+                    "http://product-service:8083/api/v1/products/" + item.getProductId() + "/stock",
                     HttpMethod.PUT,
                     entity,
                     Object.class
@@ -431,7 +431,7 @@ public class OrderService {
                 HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
                 
                 restTemplate.exchange(
-                    "http://product-service:8083/api/products/" + item.getProductId() + "/stock",
+                    "http://product-service:8083/api/v1/products/" + item.getProductId() + "/stock",
                     HttpMethod.PUT,
                     entity,
                     Object.class

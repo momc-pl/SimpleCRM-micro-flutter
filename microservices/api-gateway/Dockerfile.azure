@@ -1,0 +1,60 @@
+# Azure AMD64 Optimized Dockerfile for API Gateway
+FROM --platform=linux/amd64 openjdk:17-jre-alpine
+
+LABEL maintainer="SimpleCRM Team - Azure Optimized"
+LABEL platform="AMD64/Azure"
+LABEL service="api-gateway"
+LABEL version="1.0.0"
+
+# Install dependencies optimized for Azure Container Instances
+RUN apk add --no-cache \
+    wget \
+    curl \
+    tzdata \
+    ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+# Set timezone to UTC for consistent logging
+ENV TZ=UTC
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S appuser && \
+    adduser -S -u 1001 -G appuser appuser
+
+# Set working directory
+WORKDIR /app
+
+# Copy the application JAR file
+COPY target/api-gateway-1.0.0.jar app.jar
+
+# Change ownership to appuser
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose the port
+EXPOSE 8090
+
+# Azure AMD64 optimized JVM settings for gateway
+# Tuned for Azure Container Instances and AKS
+ENV JAVA_OPTS="-Xmx1024m -Xms512m \
+    -XX:+UseG1GC \
+    -XX:+UseContainerSupport \
+    -XX:MaxRAMPercentage=75.0 \
+    -XX:+AlwaysPreTouch \
+    -XX:+UseStringDeduplication \
+    -XX:G1HeapRegionSize=16m \
+    -XX:MaxGCPauseMillis=200 \
+    -XX:+DisableExplicitGC \
+    -Djava.security.egd=file:/dev/./urandom \
+    -Dspring.profiles.active=azure \
+    -Dmanagement.endpoints.web.exposure.include=health,metrics,prometheus \
+    -Dlogging.level.org.springframework.cloud.gateway=INFO"
+
+# Health check optimized for Azure load balancer
+HEALTHCHECK --interval=30s --timeout=15s --start-period=90s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider --timeout=10 http://localhost:8090/actuator/health || exit 1
+
+# Run the application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

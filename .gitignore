@@ -76,3 +76,21 @@ load_env.sh
 
 # Docker
 .dockerignore
+
+# Node.js
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Claude AI
+.claude/
+.swarm/
+memory/
+coordination/
+reports/
+
+# Project specific
+*.db-shm
+*.db-wal

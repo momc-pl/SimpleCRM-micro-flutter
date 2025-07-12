@@ -1,0 +1,59 @@
+# Azure AMD64 Optimized Dockerfile for Customer Service
+FROM --platform=linux/amd64 openjdk:17-jre-alpine
+
+LABEL maintainer="SimpleCRM Team - Azure Optimized"
+LABEL platform="AMD64/Azure"
+LABEL service="customer-service"
+LABEL version="1.0.0"
+
+# Install dependencies optimized for Azure
+RUN apk add --no-cache \
+    wget \
+    curl \
+    tzdata \
+    ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+# Set timezone
+ENV TZ=UTC
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S appuser && \
+    adduser -S -u 1001 -G appuser appuser
+
+# Set working directory
+WORKDIR /app
+
+# Copy the application JAR file
+COPY target/customer-service-1.0.0.jar app.jar
+
+# Change ownership to appuser
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose the port
+EXPOSE 8081
+
+# Azure AMD64 optimized JVM settings
+ENV JAVA_OPTS="-Xmx512m -Xms256m \
+    -XX:+UseG1GC \
+    -XX:+UseContainerSupport \
+    -XX:MaxRAMPercentage=75.0 \
+    -XX:+AlwaysPreTouch \
+    -XX:+UseStringDeduplication \
+    -XX:G1HeapRegionSize=8m \
+    -XX:MaxGCPauseMillis=100 \
+    -XX:+DisableExplicitGC \
+    -Djava.security.egd=file:/dev/./urandom \
+    -Dspring.profiles.active=azure \
+    -Dmanagement.endpoints.web.exposure.include=health,metrics,prometheus \
+    -Dlogging.level.com.simplecrm.customer=INFO"
+
+# Health check optimized for Azure
+HEALTHCHECK --interval=30s --timeout=15s --start-period=90s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider --timeout=10 http://localhost:8081/api/v1/actuator/health || exit 1
+
+# Run the application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

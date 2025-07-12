@@ -29,67 +29,68 @@ public class ContactService {
     @Autowired
     private ContactRepository contactRepository;
 
-    public Page<ContactDto> getAllContacts(Pageable pageable) {
-        logger.info("Fetching all contacts with pagination");
-        return contactRepository.findAll(pageable)
+    public Page<ContactDto> getAllContacts(Long userId, Pageable pageable) {
+        logger.info("Fetching all contacts for user {} with pagination", userId);
+        return contactRepository.findByUserId(userId, pageable)
                 .map(this::convertToDto);
     }
 
-    public ContactDto getContactById(Long id) {
-        logger.info("Fetching contact by id: {}", id);
-        Contact contact = contactRepository.findById(id)
+    public ContactDto getContactById(Long id, Long userId) {
+        logger.info("Fetching contact by id: {} for user: {}", id, userId);
+        Contact contact = contactRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ContactNotFoundException("Contact not found with id: " + id));
         return convertToDto(contact);
     }
 
-    public ContactDto getContactByEmail(String email) {
-        logger.info("Fetching contact by email: {}", email);
-        Contact contact = contactRepository.findByEmail(email)
+    public ContactDto getContactByEmail(String email, Long userId) {
+        logger.info("Fetching contact by email: {} for user: {}", email, userId);
+        Contact contact = contactRepository.findByEmailAndUserId(email, userId)
                 .orElseThrow(() -> new ContactNotFoundException("Contact not found with email: " + email));
         return convertToDto(contact);
     }
 
-    public List<ContactDto> getContactsByCustomerId(Long customerId) {
-        logger.info("Fetching contacts for customer id: {}", customerId);
-        return contactRepository.findByCustomerId(customerId)
+    public List<ContactDto> getContactsByCustomerId(Long customerId, Long userId) {
+        logger.info("Fetching contacts for customer id: {} and user: {}", customerId, userId);
+        return contactRepository.findByCustomerIdAndUserId(customerId, userId)
                 .stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
-    public Page<ContactDto> getContactsByStatus(ContactStatus status, Pageable pageable) {
-        logger.info("Fetching contacts by status: {}", status);
-        return contactRepository.findByStatus(status, pageable)
+    public Page<ContactDto> getContactsByStatus(ContactStatus status, Long userId, Pageable pageable) {
+        logger.info("Fetching contacts by status: {} for user: {}", status, userId);
+        return contactRepository.findByStatusAndUserId(status, userId, pageable)
                 .map(this::convertToDto);
     }
 
-    public Page<ContactDto> getContactsByType(ContactType contactType, Pageable pageable) {
-        logger.info("Fetching contacts by type: {}", contactType);
-        return contactRepository.findByContactType(contactType, pageable)
+    public Page<ContactDto> getContactsByType(ContactType contactType, Long userId, Pageable pageable) {
+        logger.info("Fetching contacts by type: {} for user: {}", contactType, userId);
+        return contactRepository.findByContactTypeAndUserId(contactType, userId, pageable)
                 .map(this::convertToDto);
     }
 
-    public Page<ContactDto> getContactsByCompany(String company, Pageable pageable) {
-        logger.info("Fetching contacts by company: {}", company);
-        return contactRepository.findByCompany(company, pageable)
+    public Page<ContactDto> getContactsByCompany(String company, Long userId, Pageable pageable) {
+        logger.info("Fetching contacts by company: {} for user: {}", company, userId);
+        return contactRepository.findByCompanyAndUserId(company, userId, pageable)
                 .map(this::convertToDto);
     }
 
-    public Page<ContactDto> searchContacts(String keyword, Pageable pageable) {
-        logger.info("Searching contacts with keyword: {}", keyword);
-        return contactRepository.searchContacts(keyword, pageable)
+    public Page<ContactDto> searchContacts(String keyword, Long userId, Pageable pageable) {
+        logger.info("Searching contacts with keyword: {} for user: {}", keyword, userId);
+        return contactRepository.searchContactsByUserId(keyword, userId, pageable)
                 .map(this::convertToDto);
     }
 
-    public ContactDto createContact(ContactCreateRequest request) {
-        logger.info("Creating new contact with email: {}", request.getEmail());
+    public ContactDto createContact(ContactCreateRequest request, Long userId) {
+        logger.info("Creating new contact with email: {} for user: {}", request.getEmail(), userId);
         
-        // Check for duplicate email
-        if (request.getEmail() != null && contactRepository.existsByEmail(request.getEmail())) {
+        // Check for duplicate email for this user
+        if (request.getEmail() != null && contactRepository.existsByEmailAndUserId(request.getEmail(), userId)) {
             throw new DuplicateEmailException("Contact already exists with email: " + request.getEmail());
         }
 
         Contact contact = convertToEntity(request);
+        contact.setUserId(userId);
         
         // Set default values
         if (contact.getContactType() == null) {
@@ -100,53 +101,52 @@ public class ContactService {
         }
 
         Contact savedContact = contactRepository.save(contact);
-        logger.info("Contact created successfully with id: {}", savedContact.getId());
+        logger.info("Contact created successfully with id: {} for user: {}", savedContact.getId(), userId);
         
         return convertToDto(savedContact);
     }
 
-    public ContactDto updateContact(Long id, ContactUpdateRequest request) {
-        logger.info("Updating contact with id: {}", id);
+    public ContactDto updateContact(Long id, ContactUpdateRequest request, Long userId) {
+        logger.info("Updating contact with id: {} for user: {}", id, userId);
         
-        Contact existingContact = contactRepository.findById(id)
+        Contact existingContact = contactRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ContactNotFoundException("Contact not found with id: " + id));
 
         // Check for duplicate email if email is being updated
         if (request.getEmail() != null && 
             !request.getEmail().equals(existingContact.getEmail()) &&
-            contactRepository.existsByEmail(request.getEmail())) {
+            contactRepository.existsByEmailAndUserId(request.getEmail(), userId)) {
             throw new DuplicateEmailException("Contact already exists with email: " + request.getEmail());
         }
 
         updateContactFromRequest(existingContact, request);
         Contact updatedContact = contactRepository.save(existingContact);
         
-        logger.info("Contact updated successfully with id: {}", updatedContact.getId());
+        logger.info("Contact updated successfully with id: {} for user: {}", updatedContact.getId(), userId);
         return convertToDto(updatedContact);
     }
 
-    public void deleteContact(Long id) {
-        logger.info("Deleting contact with id: {}", id);
+    public void deleteContact(Long id, Long userId) {
+        logger.info("Deleting contact with id: {} for user: {}", id, userId);
         
-        if (!contactRepository.existsById(id)) {
-            throw new ContactNotFoundException("Contact not found with id: " + id);
-        }
+        Contact contact = contactRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new ContactNotFoundException("Contact not found with id: " + id));
         
-        contactRepository.deleteById(id);
-        logger.info("Contact deleted successfully with id: {}", id);
+        contactRepository.delete(contact);
+        logger.info("Contact deleted successfully with id: {} for user: {}", id, userId);
     }
 
-    public long getContactCountByType(ContactType contactType) {
-        return contactRepository.countByContactType(contactType);
+    public long getContactCountByType(ContactType contactType, Long userId) {
+        return contactRepository.countByContactTypeAndUserId(contactType, userId);
     }
 
-    public long getContactCountByStatus(ContactStatus status) {
-        return contactRepository.countByStatus(status);
+    public long getContactCountByStatus(ContactStatus status, Long userId) {
+        return contactRepository.countByStatusAndUserId(status, userId);
     }
 
-    public List<ContactDto> getRecentContacts() {
-        logger.info("Fetching recent contacts");
-        return contactRepository.findTop10ByOrderByCreatedAtDesc()
+    public List<ContactDto> getRecentContacts(Long userId) {
+        logger.info("Fetching recent contacts for user: {}", userId);
+        return contactRepository.findTop10ByUserIdOrderByCreatedAtDesc(userId)
                 .stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -166,6 +166,7 @@ public class ContactService {
         dto.setContactType(contact.getContactType());
         dto.setStatus(contact.getStatus());
         dto.setCustomerId(contact.getCustomerId());
+        dto.setUserId(contact.getUserId());
         dto.setNotes(contact.getNotes());
         dto.setAddressLine1(contact.getAddressLine1());
         dto.setAddressLine2(contact.getAddressLine2());

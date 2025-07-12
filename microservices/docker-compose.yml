@@ -67,6 +67,32 @@ services:
       timeout: 10s
       retries: 3
 
+  # Contact Service
+  contact-service:
+    build:
+      context: ./contact-service
+      dockerfile: Dockerfile
+    container_name: contact-service
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/contact_db
+      - DB_USERNAME=contactuser
+      - DB_PASSWORD=contactsecret
+      - JWT_SECRET=mySecretKey
+      - AUTH_SERVICE_URL=http://auth-service:8080/api/v1
+      - CUSTOMER_SERVICE_URL=http://customer-service:8081/api/v1
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres
+      - auth-service
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # Product Service
   product-service:
     build:
@@ -80,14 +106,14 @@ services:
       - JWT_SECRET=mySecretKey
       - AUTH_SERVICE_URL=http://auth-service:8080/api/v1
     ports:
-      - "8082:8082"
+      - "8083:8083"
     depends_on:
       - postgres
       - auth-service
     networks:
       - crm-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8082/api/v1/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8083/products/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -105,9 +131,9 @@ services:
       - JWT_SECRET=mySecretKey
       - AUTH_SERVICE_URL=http://auth-service:8080/api/v1
       - CUSTOMER_SERVICE_URL=http://customer-service:8081/api/v1
-      - PRODUCT_SERVICE_URL=http://product-service:8082/api/v1
+      - PRODUCT_SERVICE_URL=http://product-service:8083/api/v1
     ports:
-      - "8083:8083"
+      - "8084:8084"
     depends_on:
       - postgres
       - auth-service
@@ -116,7 +142,7 @@ services:
     networks:
       - crm-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8083/api/v1/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -134,9 +160,9 @@ services:
       - JWT_SECRET=mySecretKey
       - AUTH_SERVICE_URL=http://auth-service:8080/api/v1
       - CUSTOMER_SERVICE_URL=http://customer-service:8081/api/v1
-      - PRODUCT_SERVICE_URL=http://product-service:8082/api/v1
+      - PRODUCT_SERVICE_URL=http://product-service:8083/api/v1
     ports:
-      - "8084:8084"
+      - "8085:8085"
     depends_on:
       - postgres
       - auth-service
@@ -160,15 +186,17 @@ services:
       - JWT_SECRET=mySecretKey
       - AUTH_SERVICE_URL=http://auth-service:8080
       - CUSTOMER_SERVICE_URL=http://customer-service:8081
-      - PRODUCT_SERVICE_URL=http://product-service:8082
-      - ORDER_SERVICE_URL=http://order-service:8083
-      - SALES_SERVICE_URL=http://sales-pipeline-service:8084
+      - CONTACT_SERVICE_URL=http://contact-service:8082
+      - PRODUCT_SERVICE_URL=http://product-service:8083
+      - ORDER_SERVICE_URL=http://order-service:8084
+      - SALES_SERVICE_URL=http://sales-pipeline-service:8085
       - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
     ports:
       - "8090:8090"
     depends_on:
       - auth-service
       - customer-service
+      - contact-service
       - product-service
       - order-service
       - sales-pipeline-service

@@ -35,9 +35,18 @@ spring:
             - StripPrefix=0
             - name: AuthenticationFilter
             
+        # Contact Service Routes
+        - id: contact-service
+          uri: ${CONTACT_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/contacts/**
+          filters:
+            - StripPrefix=0
+            - name: AuthenticationFilter
+            
         # Product Service Routes
         - id: product-service
-          uri: ${PRODUCT_SERVICE_URL:http://localhost:8082}
+          uri: ${PRODUCT_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/v1/products/**
           filters:
@@ -46,7 +55,7 @@ spring:
             
         # Order Service Routes
         - id: order-service
-          uri: ${ORDER_SERVICE_URL:http://localhost:8083}
+          uri: ${ORDER_SERVICE_URL:http://localhost:8084}
           predicates:
             - Path=/api/v1/orders/**
           filters:
@@ -55,7 +64,7 @@ spring:
             
         # Sales Pipeline Service Routes
         - id: sales-pipeline-service
-          uri: ${SALES_SERVICE_URL:http://localhost:8084}
+          uri: ${SALES_SERVICE_URL:http://localhost:8085}
           predicates:
             - Path=/api/v1/sales/**
           filters:
@@ -108,9 +117,11 @@ services:
     url: ${AUTH_SERVICE_URL:http://localhost:8080}
   customer:
     url: ${CUSTOMER_SERVICE_URL:http://localhost:8081}
+  contact:
+    url: ${CONTACT_SERVICE_URL:http://localhost:8082}
   product:
-    url: ${PRODUCT_SERVICE_URL:http://localhost:8082}
+    url: ${PRODUCT_SERVICE_URL:http://localhost:8083}
   order:
-    url: ${ORDER_SERVICE_URL:http://localhost:8083}
+    url: ${ORDER_SERVICE_URL:http://localhost:8084}
   sales:
-    url: ${SALES_SERVICE_URL:http://localhost:8084}
+    url: ${SALES_SERVICE_URL:http://localhost:8085}

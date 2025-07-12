@@ -57,6 +57,9 @@ public class Contact extends BaseEntity {
     @Column(name = "customer_id")
     private Long customerId;
 
+    @Column(name = "user_id", nullable = false)
+    private Long userId; // Reference to the user who owns this contact
+
     @Size(max = 500)
     @Column(name = "notes")
     private String notes;
@@ -182,6 +185,14 @@ public class Contact extends BaseEntity {
 
     public void setCustomerId(Long customerId) {
         this.customerId = customerId;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public String getNotes() {
