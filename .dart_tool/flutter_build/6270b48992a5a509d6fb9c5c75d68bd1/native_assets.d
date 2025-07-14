@@ -1,0 +1,1 @@
+ /Users/mos/sources/AI_Demos/simplecrm_micro_flutter/.dart_tool/flutter_build/6270b48992a5a509d6fb9c5c75d68bd1/native_assets.yaml: 

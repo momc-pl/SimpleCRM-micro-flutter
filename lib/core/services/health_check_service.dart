@@ -35,11 +35,12 @@ class HealthCheckService {
       'sales-service'
     ];
     
-    for (final service in services) {
+      for (final service in services) {
       try {
         final response = await _dioClient.get('/actuator/health/$service');
         healthStatus[service] = response.statusCode == 200;
-        AppLogger.info('$service health: ${healthStatus[service] ? 'HEALTHY' : 'UNHEALTHY'}');
+        final isHealthy = healthStatus[service] ?? false;
+        AppLogger.info('$service health: ${isHealthy ? 'HEALTHY' : 'UNHEALTHY'}');
       } catch (e) {
         healthStatus[service] = false;
         AppLogger.warning('$service health check failed: $e');

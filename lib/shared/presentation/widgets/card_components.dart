@@ -67,7 +67,7 @@ class MetricCard extends StatelessWidget {
                   color: AppColors.textSecondary,
                 ),
               ),
-              if (subtitle != null) ..[
+              if (subtitle != null) ...[
                 const SizedBox(height: 8),
                 Text(
                   subtitle!,
@@ -119,18 +119,18 @@ class InfoCard extends StatelessWidget {
                 title,
                 style: AppTextStyles.cardTitle,
               ),
-              if (subtitle != null) ..[
+              if (subtitle != null) ...[
                 const SizedBox(height: 4),
                 Text(
                   subtitle!,
                   style: AppTextStyles.cardSubtitle,
                 ),
               ],
-              if (content != null) ..[
+              if (content != null) ...[
                 const SizedBox(height: 12),
                 content!,
               ],
-              if (actions != null && actions!.isNotEmpty) ..[
+              if (actions != null && actions!.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Row(
                   children: actions!,
@@ -347,7 +347,7 @@ class CustomerSummaryCard extends StatelessWidget {
                           customerName,
                           style: AppTextStyles.titleMedium,
                         ),
-                        if (company != null) ..[
+                        if (company != null) ...[
                           const SizedBox(height: 2),
                           Text(
                             company!,
@@ -395,7 +395,7 @@ class CustomerSummaryCard extends StatelessWidget {
                   ),
                 ],
               ),
-              if (phone != null) ..[
+              if (phone != null) ...[
                 const SizedBox(height: 4),
                 Row(
                   children: [
@@ -432,7 +432,7 @@ class CustomerSummaryCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  if (onCall != null) ..[
+                  if (onCall != null) ...[
                     IconButton(
                       icon: const Icon(Icons.call),
                       onPressed: onCall,
@@ -443,7 +443,7 @@ class CustomerSummaryCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                   ],
-                  if (onEmail != null) ..[
+                  if (onEmail != null) ...[
                     IconButton(
                       icon: const Icon(Icons.email),
                       onPressed: onEmail,

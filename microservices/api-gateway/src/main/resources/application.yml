@@ -12,11 +12,6 @@ spring:
           args:
             retries: 3
             methods: GET,POST,PUT,DELETE
-        - name: RequestRateLimiter
-          args:
-            redis-rate-limiter.replenish-rate: 10
-            redis-rate-limiter.burst-capacity: 20
-            redis-rate-limiter.requested-tokens: 1
       routes:
         # Auth Service Routes
         - id: auth-service
@@ -28,7 +23,7 @@ spring:
             
         # Customer Service Routes
         - id: customer-service
-          uri: ${CUSTOMER_SERVICE_URL:http://localhost:8081}
+          uri: ${CUSTOMER_SERVICE_URL:http://localhost:8091}
           predicates:
             - Path=/api/v1/customers/**
           filters:
@@ -116,7 +111,7 @@ services:
   auth:
     url: ${AUTH_SERVICE_URL:http://localhost:8080}
   customer:
-    url: ${CUSTOMER_SERVICE_URL:http://localhost:8081}
+    url: ${CUSTOMER_SERVICE_URL:http://localhost:8091}
   contact:
     url: ${CONTACT_SERVICE_URL:http://localhost:8082}
   product:

@@ -26,7 +26,7 @@ class LoadingIndicator extends StatelessWidget {
               valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
             ),
           ),
-          if (message != null) ..[
+          if (message != null) ...[
             const SizedBox(height: 16),
             Text(
               message!,
@@ -86,7 +86,7 @@ class ErrorDisplay extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            if (onRetry != null) ..[
+            if (onRetry != null) ...[
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: onRetry,
@@ -139,7 +139,7 @@ class SuccessMessage extends StatelessWidget {
               ),
             ),
           ),
-          if (onDismiss != null) ..[
+          if (onDismiss != null) ...[
             IconButton(
               icon: const Icon(Icons.close),
               onPressed: onDismiss,
@@ -260,7 +260,7 @@ class SectionHeader extends StatelessWidget {
                   title,
                   style: AppTextStyles.titleLarge,
                 ),
-                if (subtitle != null) ..[
+                if (subtitle != null) ...[
                   const SizedBox(height: 4),
                   Text(
                     subtitle!,

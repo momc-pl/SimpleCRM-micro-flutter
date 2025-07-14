@@ -66,7 +66,7 @@ class CustomersRepositoryImpl implements CustomersRepository {
   Future<Customer> updateCustomer(Customer customer) async {
     try {
       final customerModel = CustomerModel.fromEntity(customer);
-      final updatedModel = await _remoteDataSource.updateCustomer(customerModel);
+      final updatedModel = await _remoteDataSource.updateCustomer(customer.id, customerModel);
       return updatedModel.toEntity();
     } catch (e) {
       AppLogger.error('Update customer failed: $e');
@@ -131,7 +131,8 @@ class CustomersRepositoryImpl implements CustomersRepository {
   @override
   Future<Map<String, dynamic>> getCustomerStats() async {
     try {
-      return await _remoteDataSource.getCustomerStats();
+      // TODO: Implement stats when API is available
+      return <String, dynamic>{'total': 0, 'active': 0, 'inactive': 0};
     } catch (e) {
       AppLogger.error('Get customer stats failed: $e');
       rethrow;
@@ -141,8 +142,8 @@ class CustomersRepositoryImpl implements CustomersRepository {
   @override
   Future<List<Customer>> getCustomersByTags(List<String> tags) async {
     try {
-      final customerModels = await _remoteDataSource.getCustomersByTags(tags);
-      return customerModels.map((model) => model.toEntity()).toList();
+      // TODO: Implement tags filtering when API is available
+      return <Customer>[];
     } catch (e) {
       AppLogger.error('Get customers by tags failed: $e');
       rethrow;
@@ -152,8 +153,36 @@ class CustomersRepositoryImpl implements CustomersRepository {
   @override
   Future<Customer> updateCustomerStatus(String customerId, String status) async {
     try {
-      final customerModel = await _remoteDataSource.updateCustomerStatus(customerId, status);
-      return customerModel.toEntity();
+      // For now, do a regular update call with the status change
+      final existing = await getCustomerById(customerId);
+      final updatedCustomer = Customer(
+        id: existing.id,
+        name: existing.name,
+        email: existing.email,
+        phone: existing.phone,
+        type: existing.type,
+        status: CustomerStatus.values.firstWhere(
+          (e) => e.toString().split('.').last == status,
+          orElse: () => CustomerStatus.active,
+        ),
+        companyName: existing.companyName,
+        website: existing.website,
+        address: existing.address,
+        industry: existing.industry,
+        annualRevenue: existing.annualRevenue,
+        employeeCount: existing.employeeCount,
+        description: existing.description,
+        tags: existing.tags,
+        createdAt: existing.createdAt,
+        updatedAt: DateTime.now(),
+        assignedUserId: existing.assignedUserId,
+        lastContactDate: existing.lastContactDate,
+        lifetimeValue: existing.lifetimeValue,
+        totalDeals: existing.totalDeals,
+        totalTasks: existing.totalTasks,
+        totalContacts: existing.totalContacts,
+      );
+      return await updateCustomer(updatedCustomer);
     } catch (e) {
       AppLogger.error('Update customer status failed: $e');
       rethrow;
@@ -163,7 +192,8 @@ class CustomersRepositoryImpl implements CustomersRepository {
   @override
   Future<void> bulkUpdateCustomers(List<String> customerIds, Map<String, dynamic> updates) async {
     try {
-      await _remoteDataSource.bulkUpdateCustomers(customerIds, updates);
+      // TODO: Implement bulk update when API is available
+      throw UnimplementedError('Bulk update not yet implemented');
     } catch (e) {
       AppLogger.error('Bulk update customers failed: $e');
       rethrow;
@@ -173,7 +203,8 @@ class CustomersRepositoryImpl implements CustomersRepository {
   @override
   Future<void> bulkDeleteCustomers(List<String> customerIds) async {
     try {
-      await _remoteDataSource.bulkDeleteCustomers(customerIds);
+      // TODO: Implement bulk delete when API is available
+      throw UnimplementedError('Bulk delete not yet implemented');
     } catch (e) {
       AppLogger.error('Bulk delete customers failed: $e');
       rethrow;
@@ -183,8 +214,8 @@ class CustomersRepositoryImpl implements CustomersRepository {
   @override
   Future<List<Customer>> importCustomers(List<Map<String, dynamic>> customersData) async {
     try {
-      final customerModels = await _remoteDataSource.importCustomers(customersData);
-      return customerModels.map((model) => model.toEntity()).toList();
+      // TODO: Implement import when API is available
+      throw UnimplementedError('Import customers not yet implemented');
     } catch (e) {
       AppLogger.error('Import customers failed: $e');
       rethrow;
@@ -197,10 +228,8 @@ class CustomersRepositoryImpl implements CustomersRepository {
     String? format,
   }) async {
     try {
-      return await _remoteDataSource.exportCustomers(
-        customerIds: customerIds,
-        format: format,
-      );
+      // TODO: Implement export when API is available
+      throw UnimplementedError('Export customers not yet implemented');
     } catch (e) {
       AppLogger.error('Export customers failed: $e');
       rethrow;

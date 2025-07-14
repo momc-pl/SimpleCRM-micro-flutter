@@ -4,7 +4,6 @@ import 'package:simple_crm_flutter/modules/auth/domain/entities/user.dart';
 import 'package:simple_crm_flutter/modules/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:simple_crm_flutter/modules/auth/domain/usecases/login_usecase.dart';
 import 'package:simple_crm_flutter/modules/auth/domain/usecases/logout_usecase.dart';
-import 'package:simple_crm_flutter/modules/auth/data/models/login_request_model.dart';
 import 'package:simple_crm_flutter/core/utils/logger.dart';
 
 // Auth state provider
@@ -17,10 +16,7 @@ class AuthNotifier extends AsyncNotifier<User?> {
     try {
       final getCurrentUserUseCase = sl<GetCurrentUserUseCase>();
       final result = await getCurrentUserUseCase.call();
-      return result.fold(
-        (failure) => null,
-        (user) => user,
-      );
+      return result;
     } catch (e) {
       AppLogger.error('Failed to get current user', e);
       return null;
@@ -32,19 +28,10 @@ class AuthNotifier extends AsyncNotifier<User?> {
     
     try {
       final loginUseCase = sl<LoginUseCase>();
-      final loginRequest = LoginRequestModel(
-        email: email,
-        password: password,
-      );
       
-      final result = await loginUseCase.call(loginRequest);
+      final result = await loginUseCase.call(email, password);
       
-      state = await AsyncValue.guard(() async {
-        return result.fold(
-          (failure) => throw Exception(failure.message),
-          (authResult) => authResult.user,
-        );
-      });
+      state = AsyncValue.data(result.user);
     } catch (e) {
       AppLogger.error('Login failed', e);
       state = AsyncValue.error(e, StackTrace.current);
@@ -67,12 +54,7 @@ class AuthNotifier extends AsyncNotifier<User?> {
       final getCurrentUserUseCase = sl<GetCurrentUserUseCase>();
       final result = await getCurrentUserUseCase.call();
       
-      state = await AsyncValue.guard(() async {
-        return result.fold(
-          (failure) => throw Exception(failure.message),
-          (user) => user,
-        );
-      });
+      state = AsyncValue.data(result);
     } catch (e) {
       AppLogger.error('Failed to refresh user', e);
       state = AsyncValue.error(e, StackTrace.current);

@@ -47,35 +47,4 @@ abstract class CustomersRemoteDataSource {
   
   @GET('/customers/recent')
   Future<List<CustomerModel>> getRecentCustomers(@Query('limit') int limit);
-  
-  @GET('/customers/stats')
-  Future<Map<String, dynamic>> getCustomerStats();
-  
-  @GET('/customers/tags')
-  Future<List<CustomerModel>> getCustomersByTags(@Query('tags') List<String> tags);
-  
-  @PUT('/customers/{id}/status')
-  Future<CustomerModel> updateCustomerStatus(
-    @Path('id') String customerId,
-    @Body() Map<String, String> statusUpdate,
-  );
-  
-  @PUT('/customers/bulk-update')
-  Future<void> bulkUpdateCustomers(
-    @Body() Map<String, dynamic> bulkUpdate,
-  );
-  
-  @DELETE('/customers/bulk-delete')
-  Future<void> bulkDeleteCustomers(@Body() List<String> customerIds);
-  
-  @POST('/customers/import')
-  Future<List<CustomerModel>> importCustomers(
-    @Body() List<Map<String, dynamic>> customersData,
-  );
-  
-  @GET('/customers/export')
-  Future<List<Map<String, dynamic>>> exportCustomers({
-    @Query('customerIds') List<String>? customerIds,
-    @Query('format') String? format,
-  });
 }

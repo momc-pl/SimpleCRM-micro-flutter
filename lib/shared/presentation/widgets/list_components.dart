@@ -94,14 +94,14 @@ class CustomerListItem extends StatelessWidget {
               email,
               style: AppTextStyles.cardSubtitle,
             ),
-            if (phone != null) ..[
+            if (phone != null) ...[
               const SizedBox(height: 4),
               Text(
                 phone!,
                 style: AppTextStyles.bodySmall,
               ),
             ],
-            if (company != null) ..[
+            if (company != null) ...[
               const SizedBox(height: 4),
               Text(
                 company!,
@@ -247,7 +247,7 @@ class EmptyState extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          if (actionLabel != null && onAction != null) ..[
+          if (actionLabel != null && onAction != null) ...[
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: onAction,

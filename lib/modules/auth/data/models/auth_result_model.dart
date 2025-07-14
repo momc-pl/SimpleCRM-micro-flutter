@@ -6,12 +6,15 @@ part 'auth_result_model.g.dart';
 
 @JsonSerializable()
 class AuthResultModel extends AuthResult {
+  @override
+  final UserModel user;
+  
   const AuthResultModel({
-    required super.user,
+    required this.user,
     required super.accessToken,
     required super.refreshToken,
     required super.expiresAt,
-  });
+  }) : super(user: user);
   
   factory AuthResultModel.fromJson(Map<String, dynamic> json) => _$AuthResultModelFromJson(json);
   
@@ -19,7 +22,7 @@ class AuthResultModel extends AuthResult {
   
   factory AuthResultModel.fromEntity(AuthResult authResult) {
     return AuthResultModel(
-      user: authResult.user,
+      user: authResult.user is UserModel ? authResult.user as UserModel : UserModel.fromEntity(authResult.user),
       accessToken: authResult.accessToken,
       refreshToken: authResult.refreshToken,
       expiresAt: authResult.expiresAt,
